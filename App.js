@@ -23,6 +23,22 @@ const R = CIRCLE_LENGTH / (2 * Math.PI);
 
 export default function App() {
   const AnimatedCircle = Animated.createAnimatedComponent(Circle);// do not remove this code from here
+  const progress = useSharedValue(0);
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDasharray: [
+      progress.value * CIRCLE_LENGTH,
+      (1 - progress.value) * CIRCLE_LENGTH,
+    ],
+  }));
+  const progressText = useDerivedValue(() =>
+    String(Math.round(progress.value * 100))
+  );
+
+  const runAnimation = () => {
+    progress.value = withTiming(progress.value === 0 ? 1 : 0, {
+      duration: 2000,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -41,16 +57,17 @@ export default function App() {
           stroke={STROKE_COLOR}
           strokeWidth={25}
           strokeDashoffset={250}
-          strokeDasharray={[300, 700]} // make this prop animated
+          animatedProps={animatedProps}
           strokeLinecap={"butt"}
           fill={BACKGROUND_COLOR}
         ></AnimatedCircle>
       </Svg>
       <ReText
         style={styles.progressText}
-        text={{ value: "30" }} // string derived from shared value with useDerivedValue hook should be used here
+        text={progressText}
       />
       <Pressable
+        onPress={runAnimation}
         style={({ pressed }) => [
           styles.button,
           {
